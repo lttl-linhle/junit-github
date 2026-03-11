@@ -1,0 +1,25 @@
+package com.example;
+
+public class StringManipulator {
+    public String reverse(String input) {
+        if (input == null) {
+            return null;
+        }
+        return new StringBuilder(input).reverse().toString();
+    }
+
+    public String capitalize(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return input.substring(0, 1).toUpperCase() + input.substring(1);
+    }
+
+    public boolean isPalindrome(String input) {
+        if (input == null) {
+            return false;
+        }
+        String cleanInput = input.replaceAll("\\s+", "").toLowerCase();
+        return cleanInput.equals(reverse(cleanInput));
+    }
+}
