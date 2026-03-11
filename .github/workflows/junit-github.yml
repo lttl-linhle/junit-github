@@ -47,31 +47,16 @@ jobs:
           TOKEN=$(curl -s "$BASE_AUTH_URL/api/apikeys/authenticate" \
             -H 'Content-Type:application/json' \
             -d "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" | tr -d '"')
-
-          # Find xml file
+      
           FILE=$(find target/surefire-reports -name "TEST-*.xml" | head -n 1)
-          echo "File: $FILE"
-
-          # Build URL
           URL="$BASE_URL/ds/test-executions/junit?projectKey=$PROJECT_KEY"
-
-          if [ -n "${{ github.event.inputs.TEST_EXECUTION_KEY }}" ]; then
-            URL="$URL&testExecutionKey=${{ github.event.inputs.TEST_EXECUTION_KEY }}"
-          fi
-
-          if [ -n "${{ github.event.inputs.milestoneId }}" ]; then
-            URL="$URL&milestoneId=${{ github.event.inputs.milestoneId }}"
-          fi
-
-          if [ -n "${{ github.event.inputs.testEnvironments }}" ]; then
-            URL="$URL&testEnvironments=${{ github.event.inputs.testEnvironments }}"
-          fi
-
-          echo "URL: $URL"
-          curl -X POST "$URL" \
+      
+          RESPONSE=$(curl -s -X POST "$URL" \
             -H "Content-Type:application/xml" \
             -H "Authorization:JWT $TOKEN" \
-            --data-binary "@$FILE"
+            --data-binary "@$FILE")
+      
+          echo "Response: $RESPONSE"
 
       - name: Update Pipeline Status
         if: always()
