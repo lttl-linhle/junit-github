@@ -81,16 +81,16 @@ jobs:
           else
             RESULT="failed"
           fi
-
+      
           TOKEN=$(curl -s "$BASE_AUTH_URL/api/apikeys/authenticate" \
             -X POST -H 'Content-Type:application/json' \
             -d "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" | tr -d '"')
-
+      
           JOB_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
+      
           if [ -n "${{ github.event.inputs.TEST_EXECUTION_KEY }}" ]; then
             curl -X POST "$BASE_AUTH_URL/ds/test-executions/${{ github.event.inputs.TEST_EXECUTION_KEY }}/pipeline/history?projectKey=$PROJECT_KEY" \
               -H "Content-Type: application/json" \
               -H "Authorization: JWT $TOKEN" \
-              --data "{\"jobURL\":\"$JOB_URL\",\"repository\":\"${{ github.repository }}\",\"tool\":\"github\",\"result\":\"$RESULT\"}"
+              --data "{\"buildURL\":\"$JOB_URL\",\"repository\":\"${{ github.repository }}\",\"tool\":\"github\",\"result\":\"$RESULT\"}"
           fi
