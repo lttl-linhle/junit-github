@@ -51,6 +51,9 @@ jobs:
           FILE=$(find target/surefire-reports -name "TEST-*.xml" | head -n 1)
           URL="$BASE_URL/ds/test-executions/junit?projectKey=$PROJECT_KEY"
       
+          if [ -n "${{ github.event.inputs.TEST_EXECUTION_KEY }}" ]; then
+            URL="$URL&testExecutionKey=${{ github.event.inputs.TEST_EXECUTION_KEY }}"
+          fi
           if [ -n "${{ github.event.inputs.milestoneId }}" ]; then
             URL="$URL&milestoneId=${{ github.event.inputs.milestoneId }}"
           fi
@@ -64,7 +67,18 @@ jobs:
             --data-binary "@$FILE")
       
           echo "Response: $RESPONSE"
-
+      
+          # Parse key từ response
+          CREATED_KEY=$(echo $RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin).get('key',''))" 2>/dev/null)
+      
+          # Ưu tiên input, nếu không có thì dùng key vừa tạo
+          EXEC_KEY="${{ github.event.inputs.TEST_EXECUTION_KEY }}"
+          if [ -z "$EXEC_KEY" ]; then
+            EXEC_KEY="$CREATED_KEY"
+          fi
+      
+          echo "EXEC_KEY=$EXEC_KEY" >> $GITHUB_ENV
+      
       - name: Update Pipeline Status
         if: always()
         run: |
@@ -78,8 +92,10 @@ jobs:
             -X POST -H 'Content-Type:application/json' \
             -d "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" | tr -d '"')
       
-          if [ -n "${{ github.event.inputs.TEST_EXECUTION_KEY }}" ]; then
-            curl -X POST "$BASE_AUTH_URL/ds/test-executions/${{ github.event.inputs.TEST_EXECUTION_KEY }}/pipeline/history?projectKey=$PROJECT_KEY" \
+          echo "Execution key: $EXEC_KEY"
+      
+          if [ -n "$EXEC_KEY" ]; then
+            curl -X POST "$BASE_AUTH_URL/ds/test-executions/$EXEC_KEY/pipeline/history?projectKey=$PROJECT_KEY" \
               -H "Content-Type: application/json" \
               -H "Authorization: JWT $TOKEN" \
               --data "{\"repository\":\"${{ github.repository }}\",\"runId\":\"${{ github.run_id }}\",\"tool\":\"github\",\"result\":\"$RESULT\"}"
