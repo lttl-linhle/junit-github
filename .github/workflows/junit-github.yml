@@ -86,11 +86,9 @@ jobs:
             -X POST -H 'Content-Type:application/json' \
             -d "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" | tr -d '"')
       
-          JOB_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-      
           if [ -n "${{ github.event.inputs.TEST_EXECUTION_KEY }}" ]; then
-            curl -v -X POST "$BASE_AUTH_URL/ds/test-executions/${{ github.event.inputs.TEST_EXECUTION_KEY }}/pipeline/history?projectKey=$PROJECT_KEY" \
+            curl -X POST "$BASE_AUTH_URL/ds/test-executions/${{ github.event.inputs.TEST_EXECUTION_KEY }}/pipeline/history?projectKey=$PROJECT_KEY" \
               -H "Content-Type: application/json" \
               -H "Authorization: JWT $TOKEN" \
-              --data "{\"buildURL\":\"$JOB_URL\",\"repository\":\"${{ github.repository }}\",\"tool\":\"github\",\"result\":\"$RESULT\"}"
+              --data "{\"repository\":\"${{ github.repository }}\",\"runId\":\"${{ github.run_id }}\",\"tool\":\"github\",\"result\":\"$RESULT\"}"
           fi
